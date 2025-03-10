@@ -31,6 +31,72 @@
 
         }
 
+        #calendar-container {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr); /* 7 Spalten für die Tage der Woche */
+            gap: 10px; /* Abstand zwischen den Karten */
+            justify-content: center;
+            align-items: center;
+            margin-top: 50px;
+            width: 90%; /* Breite des Containers */
+            max-width: 800px; /* Maximale Breite des Containers */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .card {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 60px; /* Breite der Karten */
+            height: 60px; /* Höhe der Karten */
+            background-color: #ff69b4; /* Pinke Hintergrundfarbe */
+            border-radius: 50%; /* Runde Karten */
+            cursor: pointer;
+            font-size: 20px; /* Schriftgröße der Zahlen */
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Schatten für den 3D-Effekt */
+    }
+    .card.locked {
+        background-color: grey;
+        cursor: not-allowed;
+    }
+    .card:hover:not(.locked) {
+        transform: scale(1.1);
+    }
+    .open-card {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;  /* Kein Abdunkeln des Hintergrunds */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+        font-size: 20px;
+    }
+
+    .open-card p {
+        background-color: white;  /* Weiße Karte */
+        color: black;             /* Schwarze Schrift */
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        max-width: 80%;
+        margin: 0 auto;
+}
+
+.open-card img {
+    max-width: 100%;
+    max-height: 80vh;
+    margin: 10px 0;
+}
+
         .countdown-container {
             text-align: center;
             margin-top: 50px;
@@ -278,10 +344,14 @@
         <h1>Countdown bis wir uns wieder sehen</h1>
         <button id="start-btn">Start</button>
     </div>
-    
-    <div id="animation-container" class="hidden2">
-        <!-- Das Canvas wird hier eingefügt, um die Herzen darzustellen -->
+    <br>
+    <br>
+    <br>
+    <div id="start-screen">
+        <h1>Erinnerungskalender</h1>
     </div>
+    <!-- Hier kommt der Kalender -->
+    <div id="calendar-container"></div>
     
     <div id="main-content" class="hidden">
         <h2>Countdown bis zum 30. März</h2>
@@ -616,41 +686,47 @@ document.getElementById("start-btn").addEventListener("click", function() {
     }
 }
 
-        document.getElementById("start-btn").addEventListener("click", function() {
-            document.getElementById("start-screen").style.display = "none";
-            document.getElementById("animation-container").classList.remove("hidden");
+document.getElementById("start-btn").addEventListener("click", function() {
+    // Startbildschirm ausblenden
+    document.getElementById("start-screen").style.display = "none";
 
-            // Canvas initialisieren
-            offCanvas = new Canvas(false);
-            canvas = new Canvas(true);
+    // Kalender ausblenden
+    document.getElementById("calendar-container").style.display = "none";
 
-            offCanvas.offInit();
+    // Spruchbereich anzeigen
+    document.getElementById("daily-quote").classList.remove("hidden");
 
-            function render() {
-                window.requestAnimationFrame(function() {
-                    canvas.render();
-                    render();
-                });
-            }
+    // Canvas initialisieren (falls gewünscht)
+    offCanvas = new Canvas(false);
+    canvas = new Canvas(true);
 
+    offCanvas.offInit();
+
+    function render() {
+        window.requestAnimationFrame(function() {
+            canvas.render();
             render();
-
-            window.addEventListener(
-                "resize",
-                function() {
-                    canvas.resize();
-                    offCanvas.resize();
-                    offCanvas.offInit();
-                },
-                false
-            );
-            
-            setTimeout(() => {
-                document.getElementById("animation-container").style.display = "none";
-                document.getElementById("main-content").style.display = "block";
-                startCountdown();
-            }, 2000);
         });
+    }
+
+    render();
+
+    window.addEventListener(
+        "resize",
+        function() {
+            canvas.resize();
+            offCanvas.resize();
+            offCanvas.offInit();
+        },
+        false
+    );
+    
+    setTimeout(() => {
+        // Main content anzeigen (Countdown und Nachricht)
+        document.getElementById("main-content").style.display = "block";
+        startCountdown();
+    }, 2000);  // Warten für 2 Sekunden, bevor der Countdown angezeigt wird.
+});
 
         function startCountdown() {
             const targetDate = new Date("March 30, 2025 00:00:00").getTime();
@@ -670,6 +746,95 @@ document.getElementById("start-btn").addEventListener("click", function() {
                 window.scrollTo(0, document.body.scrollHeight); // Scrollt zum Ende der Seite
             }, 100); // Wartet 100 Millisekunden
         };
+
+
+        document.addEventListener("DOMContentLoaded", function() {
+        const calendarContainer = document.getElementById("calendar-container");
+        const today = new Date();
+        const currentDay = today.getDate();
+
+        for (let i = 1; i <= 30; i++) {
+            const card = document.createElement("div");
+            card.classList.add("card");
+            card.textContent = i;
+            
+            if (i > currentDay) {
+                card.classList.add("locked");
+            } else {
+                card.addEventListener("click", function() {
+                    if (!this.classList.contains("locked")) {
+                        openCard(this, i);
+                    }
+                });
+            }
+
+            calendarContainer.appendChild(card);
+        }
+    });
+
+    function openCard(card, day) {
+        const overlay = document.createElement("div");
+        overlay.classList.add("open-card");
+        overlay.innerHTML = `<p>Inhalt für Tag ${day}</p>`;
+        document.body.appendChild(overlay);
+        
+        overlay.addEventListener("click", function() {
+            document.body.removeChild(overlay);
+        });
+    }
+
+
+    // Liste von Inhalten für jeden Tag (hier kannst du den Inhalt für jeden Tag einfügen)
+const contentForDays = {
+    1: "Inhalt für Tag 1: 'Alleine sitze ich im Gym und schaue in die Leere während meiner Pause. Ich habe keine Kopfhörer, weil ich das Musik hören gar nicht mag während dem Training. Ich trainiere gerade Rücken, eine meiner Lieblingsübungen ist die, bei der ich meinen Latissimus am Latzug trainiere. Und da sitze ich an dem Gerät und ziehe mehr, als ich eigentlich kann. Nichts ahnend und unbewusst, gehe ich nach der Übung nach Hause und merke langsam ein Stechen in meinem Rücken. Mit voller Schmerzen und Leid schleife ich mich durch den Tag und verfluche alles, was gestern passiert ist, alles, was war, ohne darüber nachzudenken, warum das eigentlich passiert ist, ohne zu wissen, was für eine wundervolle, wunderschöne und einzigartige Seele auf mich wartet.'",
+    2: "Inhalt für Tag 2: 'Ich wache auf, schaue nach links und rechts. Ich versuche, nicht an die Schmerzen zu denken, aber es geht nicht, es ist grauenvoll. Die Uni hat wieder begonnen und ich will in OOSE nichts verpassen, also packe ich irgendwie noch meine Sachen, ziehe mich um und mache mich auf den Weg. Angekommen setze ich mich hin, aber auch das klappt nicht, denn egal was ich mache, alles sticht. Zudem kommt noch das Beste: Das Thema, das wir besprechen, ist eines der einfachsten und oberflächlichsten, die es gibt. Für mich geht es klar und deutlich zurück nach Sossenheim zu meiner Ärztin, zu der ich immer gehe, wenn ich Sportunfälle habe. Eine Woche später, die ich genutzt habe, um mich auszuruhen, bin ich wieder in der Uni und nehme am Datenbanken-Praktikum teil. Beim Sitzen bemerke ich, wie mehr und mehr Leute reinkommen, und ebenso Mädels, die aber überhaupt nicht meine Aufmerksamkeit bekommen, außer eine, eine einzige. Die reinkommt, schaue ich etwas länger an als die anderen, und ein Gefühl kommt hoch – ein Gefühl der Wiedererkennung, eines, das man als Déjà-vu bezeichnen könnte. Und dann war sie wieder weg, wie im Bruchteil einer Sekunde, verschwand die Person hinter anderen Leuten, die mich kurz alles an Uni, Erfolg, Eigenverantwortung und Naivität vergessen ließen.'",
+    3: "Inhalt für Tag 3: 'Mein erstes Mal bin ich in einer Übung, die nicht aus dem 1. oder 2. Semester ist, sondern aus dem 3. Für mich persönlich eine Errungenschaft, solange wie ich schon im 1. und 2. Semester festhing. Ich laufe zur Übung. Angekommen sehe ich direkt eine bestimmte Person stehen – eine, die ich nicht kenne. Und normalerweise kenne ich jeden, solange wie ich schon an dieser Uni bin. Dennoch fällt mir sofort auf: Sie ist hübsch … sehr hübsch. Und ebenso schaut sie ein paar Mal rüber zu mir. Nicht so oft, wie ich sie angestarrt habe, aber immerhin ein paar Mal. Dann sind wir drinnen und werden sogar nebeneinandergesetzt – ich, weil ich eine Woche nicht kommen konnte wegen meiner Verletzung, und sie, weil sie die Gruppe gewechselt hat. So saßen wir dann zusammen, und da realisierte ich, dass wir beide ein ganzes Semester zusammen sein würden. Ich war am Tippen, und sie auch. Wir beide waren sehr ruhig und zurückhaltend. Doch durch das Übungsblatt begannen wir, mehr und mehr zu reden. Keine halbe Stunde verging, und wir unterhielten uns, als würden wir uns schon eine Ewigkeit kennen – bis wir uns wieder fokussierten und weiterarbeiten wollten. Ich schaute ein paar Mal rüber und sah sie von der Seite oben – ihre schöne Nase, ihr elegantes Seitenprofil, ihren markanten Kiefer … und da war es wieder, genau wie bei der Vorlesung: diese Hypnose, die sie verursacht. Wie ich auch jetzt gerade beim Schreiben gemerkt habe – sie schafft es immer wieder, meine Gedanken zu entführen. Zwei Fliegen mit einer Klatsche …'",
+    4: "inhalt für Tag 4: 'Es ist offiziell … ich bin verliebt. Sie hat mich in den letzten Wochen und Monaten so oft verzaubert, dass ich nur noch an Magie glauben kann. Sie hat mich die ganze Zeit zum Lachen gebracht, mich zum Nachdenken angeregt und mir geholfen, meine Fehler zu erkennen. Wir beide – wir sind es, die Fehler haben. Wir beide tragen einen Berg von Problemen mit uns, so hoch, dass man nicht einmal die Spitze sehen kann. Normalerweise würde man dabei nichts Gutes erwarten, doch ich freue mich darauf wie nie zuvor. Ich freue mich darauf, mit ihr zu reden, zu verstehen und einzusehen. Ich freue mich darauf, eines Tages zurückzublicken und zu lachen – uns zu erinnern, wie weit wir es geschafft haben und wie wichtig wir uns sind, Denn wir haben nie aufgegeben. Weil wir immer an uns festgehalten haben, Weil wir es uns wert waren, alles zu riskieren...Darauf freue ich mich.'",
+    5: "inhalt für Tag 5: 'Nachdem ich den schlimmsten Urlaub meines Lebens hinter mir hatte, bin ich zurück – und freue mich geisteskrank darauf, sie wiederzusehen. Ich bin auf dem Weg zu ihr, mein Körper schwer von Problemen und Lasten, die so sehr auf mich drücken, dass ich beinahe im Boden versinke. Doch je näher ich ihr komme, desto mehr verspüre ich Hoffnung und Glückseligkeit. Angekommen, sehe ich sie zum ersten Mal nach zehn langen, traumatischen Tagen – und allein durch ihren wunderschönen Anblick verschwindet die Hälfte meiner Probleme. Ich komme ihr näher, und wir umarmen uns … Das war der Moment, in dem ich zum ersten Mal in meinem Leben den Boden unter mir nicht mehr gespürt habe. Zum ersten Mal war ich nicht mehr hier. Ich war so weit entfernt von den weltlichen Problemen, dass ich den Stern Sirius hautnah berühren konnte – ohne zu verbrennen. Ich schwebte zwischen den Nebularwolken und sah an mir vorbei gewaltige Massen aus Gestein, die in Form einer Sternschnuppe über uns hinwegzogen, während wir uns umarmten. Ich erlebte die Flucht vor einem Schwarzen Loch, ohne in seine Singularität gezogen zu werden. Ich spürte das Leben, die endlose Weite und die unermessliche Masse des Weltalls. Ich erkundete die unerforschten Ecken und Geheimnisse des Universums, erlangte das Wissen über das Weiße Loch – und verstand die Rätsel des Kosmos. Doch dann, innerhalb weniger Sekunden, wurde ich zurückgezogen. Ich war wieder da. Unsere Herzen berührten sich nicht mehr, wir mussten uns voneinander lösen – denn du wolltest mir deine Errungenschaften des Tages zeigen. Ich war älter danach. Weiser. Ich hatte das Wissen des Universums erlangt. Und doch war ich traurig – denn ich wollte all das noch einmal erleben. Ohne zu wissen, dass ich schon bald auf eine zweite Reise gehen würde…Nachdem ich deine Lasagne probiert hatte.'",
+    6: "inhalt für Tag 6: 'Die letzten Monate haben mir nur noch mehr gezeigt, warum ich sie mit jedem Tag mehr lieben sollte. Warum ich mich in allem mehr anstrengen sollte. Warum ich besser auf mich – und auf sie – aufpassen muss. Ich habe angefangen zu arbeiten, und der Monat Ramadan steht bevor. An meiner Seite ist sie jeden Tag, und an keinem einzigen Tag ist sie schlecht zu mir. Neben ihr fühle ich mich wie ein König. Und neben ihr weiß ich, dass ich noch einen langen Weg vor mir habe, bis ich mir die Krone tatsächlich aufsetzen darf.'",
+    7: "inhalt für Tag 7: 'Sie ist es – auf meinem Weg mein Licht. Mein Licht, bei dem das Funkeln niemals bricht. Das Feuer in ihren Augen lässt mich nicht hineinsehen, doch das Augenlicht zu verlieren, das muss ich eingehen. Ihr Lächeln – so schön und strahlend wie die Sonne am Tageslicht. Doch ist das Lächeln weg, so färbt sich der Himmel dunkler an der Horizontalschicht. Die Nase – so klein und süß wie die von einem Rentier, und die Haare – so voll und voluminös, dass es niemand je gesehen hat, nicht mal der königliche Barbier. Nun gehen mir die Reime aus, und ich fange an, mir das alles zu erschweren, doch der kleine Gedanke an sie lässt mich wieder mein Glück belehren.'",
+    8: "inhalt für Tag 8: 'Sie ist mein Licht in dunkler Nacht, das strahlend über alles wacht. Ihr Lächeln heller als der Mond, ein Zauber, der in Herzen wohnt. Ihr Blick ein Funke, warm und klar, so schön, so sanft, so wunderbar. Bei ihr vergeht die Zeit im Flug, weil sie mein Herz mit Liebe trug.'",
+    9: "inhalt für Tag 9: 'Wer war es, der mich motivierte, als es keiner tat? Wer war es, der mir gezeigt hat, was ich an mir ändern soll? Wer war es, der mich daran erinnert hat, meine Probleme und Sorgen mal beiseite zu schieben?Wer war es, der mit mir stundenlang in einem Krankenhaus saß?Und wer war es, der sich den weiten Weg gemacht hat, um mich zu besuchen, als es mir nicht gut ging? Du weißt genau, wer das ist.'",
+    10: "inhalt für Tag 10: 'Du darfst heute entscheiden, was du als Nächstes willst. Willst du ein Gedicht? Eine Erinnerung an unsere Geschichte? Ein Quiz? Oder einfach nur ein Geschenk?'",
+    11: "inhalt für Tag 11: ''",
+    12: "inhalt für Tag 12: ''",
+    13: "inhalt für Tag 13: ''",
+    14: "inhalt für Tag 14: ''",
+    15: "inhalt für Tag 15: ''",
+    16: "inhalt für Tag 16: ''",
+    17: "inhalt für Tag 17: ''",
+    18: "inhalt für Tag 18: ''",
+    19: "inhalt für Tag 19: ''",
+    20: "inhalt für Tag 20: ''",
+    21: "inhalt für Tag 21: ''",
+    22: "inhalt für Tag 22: ''",
+    23: "inhalt für Tag 23: ''",
+    24: "inhalt für Tag 24: ''",
+    25: "inhalt für Tag 25: ''",
+    26: "inhalt für Tag 26: ''",
+    27: "inhalt für Tag 27: ''",
+    28: "inhalt für Tag 28: ''",
+    29: "inhalt für Tag 29: ''",
+    30: "Inhalt für Tag 30: 'Das Beste kommt zum Schluss!'"
+};
+
+// Funktion, die beim Klicken auf eine Karte aufgerufen wird
+function openCard(card, day) {
+    const overlay = document.createElement("div");
+    overlay.classList.add("open-card");
+
+    // Hole den Inhalt für den Tag aus der contentForDays Map
+    const content = contentForDays[day] || `Kein Inhalt für Tag ${day}`;
+
+    overlay.innerHTML = `<p>${content}</p>`;
+    document.body.appendChild(overlay);
+
+    // Schließe das Overlay beim Klicken
+    overlay.addEventListener("click", function() {
+        document.body.removeChild(overlay);
+    });
+}
+
     </script>
 </body>
 </html>
