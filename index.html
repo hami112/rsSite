@@ -226,6 +226,63 @@
             box-shadow: 0 0 20px #ff4081, 0 0 40px #ff79b0;  /* Glühen, wenn der Benutzer mit der Maus darüber fährt */
         }
 
+        /* Mobile Anpassungen für kleinere Bildschirme */
+@media (max-width: 767px) {
+    body {
+        padding: 10px;
+        height: auto; /* Um sicherzustellen, dass die Seite sich dem Inhalt anpasst */
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+    }
+
+    p {
+        font-size: 1rem;
+        margin: 10px 0;
+    }
+
+    /* Kalender Anpassungen */
+    .calendar {
+        grid-template-columns: repeat(3, 1fr); /* Weniger Spalten für kleinere Bildschirme */
+    }
+
+    .calendar div {
+        padding: 8px;
+        font-size: 1rem;
+    }
+}
+
+/* Extra Mobile Anpassungen für noch kleinere Bildschirme (z.B. Handys im Hochformat) */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    h2 {
+        font-size: 1.2rem;
+    }
+
+    .calendar {
+        grid-template-columns: repeat(2, 1fr); /* Zwei Spalten für sehr kleine Bildschirme */
+    }
+
+    .calendar div {
+        padding: 6px;
+        font-size: 0.9rem;
+    }
+}
+
 
         #animation-container {
             position: absolute;
